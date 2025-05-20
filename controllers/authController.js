@@ -25,7 +25,9 @@ exports.forgotPassword = async (req, res) => {
     await account.save();
 
     // Send email
-    const resetLink = `${req.protocol}://${req.get("host")}/api/auth/reset-password/${resetToken}`;
+    //const resetLink = `${req.protocol}://${req.get("host")}/api/auth/reset-password/${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
     await sendEmail(account.email, "Password Reset", `<p>Click <a href="${resetLink}">here</a> to reset your password. The link expires in 1 hour.</p>`);
 
     res.status(200).json({ message: "Password reset email sent" });
@@ -74,6 +76,27 @@ exports.updatePassword = async (req, res) => {
     await account.save();
 
     res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Show Reset Form
+exports.showResetForm = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Find account with the token
+    const account = await Account.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!account) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    res.status(200).json({ message: "Token is valid. Show reset form", email: account.email });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
