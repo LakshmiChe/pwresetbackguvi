@@ -3,7 +3,7 @@ const cors = require('cors');
 const express = require("express");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
-
+const bodyParser = require('body-parser');
 const app = express();
 
 // Middleware
@@ -12,12 +12,14 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 
-// Allow requests from your frontend origin during development
-app.use(cors({
-  origin: 'http://localhost:5173',  // your React app URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,  // if you use cookies/auth headers
-}));
+app.use(cors({ origin: "*" }));
+
+// // Allow requests from your frontend origin during development
+// app.use(cors({
+//   origin: 'http://localhost:5173',  // your React app URL
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   credentials: true,  // if you use cookies/auth headers
+// }));
 
 // Database Connection
 mongoose
