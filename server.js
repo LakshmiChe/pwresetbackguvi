@@ -16,7 +16,7 @@ app.use("/api/auth", authRoutes);
 
 // Allow requests from your frontend origin during development
 app.use(cors({
-  origin: 'http://localhost:3000',  // your React app URL
+  origin: '*',  // your React app URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,  // if you use cookies/auth headers
 }));
