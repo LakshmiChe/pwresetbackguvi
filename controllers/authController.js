@@ -1,99 +1,67 @@
 const Account = require("../models/Account");
 const sendEmail = require("../utils/email");
 const crypto = require("crypto");
+// const bcrypt = require("bcrypt");
 const bcrypt = require("bcryptjs");
 
-// Forgot Password Handler
+// Forgot Password
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-
   try {
-    const account = await Account.findOne({ email: email.toLowerCase() });
+    const { email } = req.body;
+
+    // Check if the account exists
+    const account = await Account.findOne({ email });
     if (!account) {
-      return res.status(404).json({ message: 'Account not found' });
+      return res.status(404).json({ message: "Account not found" });
     }
 
-    // Generate a secure random token
+    // Generate a random token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const resetTokenExpiry = Date.now() + parseInt(process.env.RESET_LINK_EXPIRY);
 
-    // Store hashed token with expiry in the database
-    account.resetToken = hashedToken;
-    account.resetTokenExpiry = Date.now() + 3600000; // 1 hour
+    // Update account in the database
+    account.resetToken = resetToken;
+    account.resetTokenExpiry = resetTokenExpiry;
     await account.save();
 
-    // Send email with reset link
-    const resetLink = `http://pwresetbackguvi.vercel.app/api/auth/reset-password/${resetToken}`;
-    const subject = "Password Reset Request";
-    const html = `<p>Click <a href="${resetLink}">here</a> to reset your password. This link expires in 1 hour.</p>`;
-    await sendEmail(email, subject, "", html);
+    // Send email
+    const resetLink = `${req.protocol}://${req.get("host")}/api/auth/reset-password/${resetToken}`;
+    await sendEmail(account.email, "Password Reset", `<p>Click <a href="${resetLink}">here</a> to reset your password. The link expires in 1 hour.</p>`);
 
-    res.json({ message: "Password reset email sent" });
-  } catch (err) {
-    console.error("Error in forgotPassword:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(200).json({ message: "Password reset email sent" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Verify Token Handler
-exports.verifyToken = async (req, res) => {
-  const { token } = req.params;
-
-  try {
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-    const account = await Account.findOne({
-      resetToken: hashedToken,
-      resetTokenExpiry: { $gt: Date.now() },
-    });
-
-    if (!account) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    res.json({ message: "Token is valid", userId: account._id });
-  } catch (err) {
-    console.error("Error in verifyToken:", err.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// Reset Password Handler
+// Reset Password
 exports.resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
-
   try {
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const { token } = req.params;
+
+    // Find account with the token
     const account = await Account.findOne({
-      resetToken: hashedToken,
+      resetToken: token,
       resetTokenExpiry: { $gt: Date.now() },
     });
 
     if (!account) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password and clear token fields
-    account.password = hashedPassword;
-    account.resetToken = null;
-    account.resetTokenExpiry = null;
-    await account.save();
-
-    res.json({ message: "Password reset successful" });
-  } catch (err) {
-    console.error("Error in resetPassword:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(200).json({ message: "Token is valid", email: account.email });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Update Password Handler
+// Update Password
 exports.updatePassword = async (req, res) => {
-  const { email, newPassword } = req.body;
-
   try {
-    const account = await Account.findOne({ email: email.toLowerCase() });
+    const { email, newPassword } = req.body;
+
+    // Find account
+    const account = await Account.findOne({ email });
     if (!account) {
       return res.status(404).json({ message: "Account not found" });
     }
@@ -101,11 +69,12 @@ exports.updatePassword = async (req, res) => {
     // Hash new password and update account
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     account.password = hashedPassword;
+    account.resetToken = null;
+    account.resetTokenExpiry = null;
     await account.save();
 
     res.status(200).json({ message: "Password updated successfully" });
-  } catch (err) {
-    console.error("Error in updatePassword:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
