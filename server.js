@@ -12,14 +12,14 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 
-app.use(cors({ origin: "*" }));
+// app.use(cors({ origin: "*" }));
 
-// // Allow requests from your frontend origin during development
-// app.use(cors({
-//   origin: 'http://localhost:5173',  // your React app URL
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   credentials: true,  // if you use cookies/auth headers
-// }));
+// Allow requests from your frontend origin during development
+app.use(cors({
+  origin: 'http://localhost:3000',  // your React app URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,  // if you use cookies/auth headers
+}));
 
 // Database Connection
 mongoose
