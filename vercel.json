@@ -1,8 +1,14 @@
 {
    "version"  : 2,
    "builds" : [{"src":"./server.js","use": "@vercel/node"}],
-     "rewrites": [
-        { "src": "/reset-password/:token", "dest": "/api/auth/reset-password/:token" }
-    ],
-   "routes":[{"src":"/(.*)","dest":"/server.js"}]
+     "routes": [
+    {
+      "src": "/reset-password/(.*)",
+      "dest": "/api/auth/reset-password/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ]
 }
