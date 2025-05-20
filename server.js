@@ -3,29 +3,36 @@ const cors = require('cors');
 const express = require("express");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
-
+const bodyParser = require('body-parser');
 const app = express();
 
 // Middleware
-app.use(cors({ // Configure CORS
-  origin: '*', // Add frontend URLs
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-  allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
-  credentials: true, // Set to true if using cookies/auth headers
+app.use(express.json());
+
+// Enable CORS for all origins (modify as needed)
+app.use(cors({
+  origin: '*',  // Allow all origins, you can restrict to your frontend's origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 }));
 
-app.use(express.json()); // Parse incoming JSON requests
-
-// Routes
+// Auth routes
 app.use("/api/auth", authRoutes);
 
-// Database Connection
+// Add reset-password route
+app.get("/reset-password/:token", (req, res) => {
+  const { token } = req.params;
+  res.send(`Token received: ${token}`);
+});
+
+// Database connection
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`Server running on http://localhost:${process.env.PORT || 5000}`);
+    app.listen(process.env.PORT, () => {
+      console.log(`Server running on http://localhost:${process.env.PORT}`);
     });
   })
   .catch((err) => console.error("MongoDB connection error:", err));
