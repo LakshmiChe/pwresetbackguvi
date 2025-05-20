@@ -23,7 +23,7 @@ exports.forgotPassword = async (req, res) => {
     await account.save();
 
     // Send email with reset link
-    const resetLink = `http://pwresetbackguvi.vercel.app/reset-password/${resetToken}`;
+    const resetLink = `http://pwresetbackguvi.vercel.app/api/auth/reset-password/${resetToken}`;
     const subject = "Password Reset Request";
     const html = `<p>Click <a href="${resetLink}">here</a> to reset your password. This link expires in 1 hour.</p>`;
     await sendEmail(email, subject, "", html);
