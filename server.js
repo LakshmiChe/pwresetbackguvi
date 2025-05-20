@@ -12,18 +12,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 
-// app.use(cors({ origin: "*" }));
-
-app.use(
-  cors({
-    origin: ["http://localhost:3000", "https://your-netlify-frontend.netlify.app"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // If you need to allow cookies or authentication headers
-  })
-);
-
-app.options("*", cors());
-
+app.use(cors({ origin: "*" }));
 
 // // Allow requests from your frontend origin during development
 // app.use(cors({
