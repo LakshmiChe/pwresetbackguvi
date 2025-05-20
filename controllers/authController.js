@@ -25,7 +25,7 @@ exports.forgotPassword = async (req, res) => {
     await account.save();
 
     // Send email
-    const resetLink = `${req.protocol}://${req.get("host")}/reset-password/${resetToken}`;
+    const resetLink = `${req.protocol}://${req.get("host")}/api/auth/reset-password/${resetToken}`;
     await sendEmail(account.email, "Password Reset", `<p>Click <a href="${resetLink}">here</a> to reset your password. The link expires in 1 hour.</p>`);
 
     res.status(200).json({ message: "Password reset email sent" });
